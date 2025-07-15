@@ -26,6 +26,10 @@ python experiments.py evaluate configs/MergeEnv/env_rule.json --test --episodes=
 
 即可运行
 # 如何训练一个智能体
+一般结构：python experiments.py evaluate 环境配置 智能体配置 --train --no-display --episodes=20
+
+具体实例
+
 python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/agents/DQNAgent/dqn.json --train --no-display --episodes=20
 
 "--no-display"参数传入(设置为True)意味着不会保存渲染视频。如果训练期间需要运行几万个episodes，出于内存考虑，此参数训练期间必须传入
