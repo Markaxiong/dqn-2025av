@@ -6,12 +6,15 @@
 "conda activate dqn_2025av"
 # 安装环境需要的所有依赖前，需要进入你的工作目录
 如"C:\Users\73191\Desktop\dqn_2025av-main\dqn_2025av"
+
 通过 "cd+文件夹名" 打开一个文件夹
+
 通过 "cd .." 返回上一级文件夹
 # 进入工作目录后，可以安装环境所需的所有依赖
 rl-agents(算法实现的库)和highway(自动驾驶环境)的所有依赖已经置于
 dqn_2025av-main\dqn_2025av\requirements.txt下
-所以你需要运行指令
+
+所以你只需运行指令
 
 "pip install -r requirements.txt" 
 
@@ -30,14 +33,17 @@ dqn_2025av-main\dqn_2025av\requirements.txt下
 "python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/agents/DQNAgent/dqn.json --test --recover --episodes=20"
 
 此时需要看到策略的效果，默认不传入"--no-display"，以保存测试时的渲染视频
-"--recover"参数意味着加载最新一次训练的模型如果你不想加载最新的模型
-需要在"--recover"后传入具体的模型路径
+
+"--recover"参数意味着加载最新一次训练的模型
+
+如果你不想加载最新的模型，需要在"--recover"后传入具体的模型路径
 
 如 "--recover out/MergeEnv/DQNAgent/run_20250617-145431_621696/checkpoint-final.tar"
 # 如何查看车辆运行的渲染视频
 所有运行结果,包括训练的模型和已经渲染的视频会保存在工作目录的out文件夹下
 # 如何查看模型的训练表现(使用tensorboard)
-在requirement.txt中已经按照tensorboard
+在requirement.txt中已经安装tensorboard
+
 你只需要找到out文件夹下当次运行的目录，利用指令
 
 "tensorboard --logdir=/data/code/xiongminghao/rl-agents/scripts/out/MergeEnv/DQNAgent/run_20250617-145431_621696"
