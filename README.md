@@ -26,7 +26,7 @@ python experiments.py evaluate configs/MergeEnv/env_rule.json --test --episodes=
 
 即可运行
 # 如何训练一个智能体
-一般结构：python experiments.py evaluate 环境配置 智能体配置 --train --no-display --episodes=20
+一般结构：python experiments.py evaluate env_config(环境配置) agent_config(智能体配置) --train --no-display --episodes=20
 
 具体实例
 
