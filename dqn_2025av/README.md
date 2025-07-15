@@ -1,4 +1,4 @@
-<img width="866" height="105" alt="image" src="https://github.com/user-attachments/assets/237f0254-e379-41e1-a2cb-f99bb941dad8" /># 首先需要进入你的工作目录
+# 首先需要进入你的工作目录
 如C:\Users\73191\Desktop\dqn_2025av-main\dqn_2025av
 
 通过 "cd+文件夹名" 打开一个文件夹
@@ -57,7 +57,7 @@ python experiments.py evaluate configs/MergeEnv/env_agg.json --test --recover --
 tensorboard --logdir= your_logdir_name 這裏換成你自己的訓練日志文件夾，在工作目錄的out文件夾下查找
 
 例如
-tensorboard --logdir=/data/code/xiongminghao/rl-agents/scripts/out/MergeEnv/DQNAgent/run_20250617-145431_621696
+tensorboard --logdir=/out/MergeEnv/DQNAgent/run_20250617-145431_621696
 
 即可查看智能体训练获得的奖励情况
 
