@@ -44,9 +44,9 @@ python experiments.py evaluate configs/MergeEnv/env_agg.json --test --recover --
 
 如果你不想加载最新的模型，需要在"--recover"后传入具体的模型路径
 
-由於你已經加載了智能體模型，所以test時不需要額外加載智能體配置文件(這一點和訓練時有區別！!)
-
 如 --recover out/MergeEnv/DQNAgent/run_20250617-145431_621696/checkpoint-final.tar
+
+由於你已經加載了智能體模型，所以test時不需要額外加載智能體配置文件(這一點和訓練時有區別！!)
 # 如何查看车辆运行的渲染视频
 所有运行结果,包括训练的模型和已经渲染的视频会保存在工作目录的out文件夹下
 # 如何查看模型的训练表现(使用tensorboard)
