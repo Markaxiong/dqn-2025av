@@ -4,6 +4,7 @@ import json
 import logging
 import gymnasium as gym
 
+
 from rl_agents.configuration import Configurable
 
 logger = logging.getLogger(__name__)
@@ -70,8 +71,10 @@ def load_environment(env_config):
 
     # Make the environment
     if env_config.get("import_module", None):
+        print("[DEBUG] importing module:", env_config["import_module"])
         __import__(env_config["import_module"])
     try:
+        print("env_configid", env_config['id'])
         env = gym.make(env_config['id'], render_mode='rgb_array')
         # Save env module in order to be able to import it again
         env.import_module = env_config.get("import_module", None)

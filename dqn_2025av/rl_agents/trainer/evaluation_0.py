@@ -78,6 +78,8 @@ class Evaluation(object):
 
         self.directory = Path(directory or self.default_directory)
         self.run_directory = self.directory / (run_directory or self.default_run_directory)
+        trigger = None
+        print("self.display_env", self.display_env)
         if self.display_env:
             trigger = lambda e: True  # 每个 episode 都录像
         else:
@@ -92,18 +94,18 @@ class Evaluation(object):
         self.wrapped_env = RecordEpisodeStatistics(self.wrapped_env)
         self.episode = 0
         self.writer = SummaryWriter(str(self.run_directory))
-        if self.agent is not None:
-            self.agent.set_writer(self.writer)
-            self.agent.evaluation = self
+        self.agent.set_writer(self.writer)
+        self.agent.evaluation = self
         self.write_logging()
         self.write_metadata()
         self.filtered_agent_stats = 0
         self.best_agent_stats = -np.inf, 0
+
         self.recover = recover
-        if self.recover and self.agent is not None:
+        if self.recover:
             self.load_agent_model(self.recover)
 
-        if display_agent and self.agent is not None:
+        if display_agent:
             try:
                 # Render the agent within the environment viewer, if supported
                 self.env.render()
@@ -119,8 +121,6 @@ class Evaluation(object):
         self.observation = None
 
     def train(self):
-        if self.agent is None:
-            raise ValueError("No agent provided for training.")
         self.training = True
         if getattr(self.agent, "batched", False):
             self.run_batched_episodes()
@@ -145,7 +145,8 @@ class Evaluation(object):
         self.close()
 
     def run_episodes(self):
-        for self.episode in range(self.num_episodes):
+        #for self.episode in range(self.num_episodes):
+        for self.episode in trange(self.num_episodes, desc="Training Episodes"):
             # Run episode
             terminal = False
             self.reset(seed=self.episode)
@@ -172,23 +173,19 @@ class Evaluation(object):
         """
             Plan a sequence of actions according to the agent policy, and step the environment accordingly.
         """
-        if self.agent is not None:
-            actions = self.agent.plan(self.observation)
-            if not actions:
-                raise Exception("The agent did not plan any action")
-            action = actions[0]
+        # Query agent for actions sequence
+        actions = self.agent.plan(self.observation)
+        if not actions:
+            raise Exception("The agent did not plan any action")
 
-            try:
-                self.env.unwrapped.viewer.set_agent_action_sequence(actions)
-            except AttributeError:
-                pass
-        else:
-            # Rule-based: no agent, use dummy action (ignored in env)
-            action = 0
+        # Forward the actions to the environment viewer
+        try:
+            self.env.unwrapped.viewer.set_agent_action_sequence(actions)
+        except AttributeError:
+            pass
 
         # Step the environment
-        #previous_observation, action = self.observation, actions[0]
-        previous_observation = self.observation
+        previous_observation, action = self.observation, actions[0]
         transition = self.wrapped_env.step(action)
         self.observation, reward, done, truncated, info = transition
         terminal = done or truncated
@@ -198,11 +195,10 @@ class Evaluation(object):
             self.step_callback_fn(self.episode, self.wrapped_env, self.agent, transition, self.writer)
 
         # Record the experience.
-        if self.agent is not None:
-            try:
-                self.agent.record(previous_observation, action, reward, self.observation, done, info)
-            except NotImplementedError:
-                pass
+        try:
+            self.agent.record(previous_observation, action, reward, self.observation, done, info)
+        except NotImplementedError:
+            pass
 
         return reward, terminal
 
@@ -251,7 +247,8 @@ class Evaluation(object):
             # Fill memory
             for trajectory in trajectories:
                 if trajectory[-1].terminal:  # Check whether the episode was properly finished before logging
-                    self.after_all_episodes(episode, [transition.reward for transition in trajectory])
+                    self.after_all_episodes(episode, [transition.reward for transition in trajectory], episode_duration)
+                    self.after_some_episodes(episode, [transition.reward for transition in trajectory])
                 episode += 1
                 [self.agent.record(*transition) for transition in trajectory]
 
@@ -284,7 +281,7 @@ class Evaluation(object):
         agent.seed(seed)
         agent.set_time(start_time)
 
-        state = env.reset(seed=seed)
+        state, _ = env.reset(seed=seed)
         episodes = []
         trajectory = []
         for _ in range(count):
@@ -292,7 +289,7 @@ class Evaluation(object):
             next_state, reward, done, truncated, info = env.step(action)
             trajectory.append(Transition(state, action, reward, next_state, done, info))
             if done:
-                state = env.reset()
+                state, _ = env.reset()
                 episodes.append(trajectory)
                 trajectory = []
             else:
@@ -335,9 +332,9 @@ class Evaluation(object):
         except NotImplementedError:
             pass
 
-    def after_all_episodes(self, episode, rewards, duration):
+    def after_all_episodes(self, episode, rewards,duration):
         rewards = np.array(rewards)
-        gamma = self.agent.config.get("gamma", 1) if self.agent is not None else 1
+        gamma = self.agent.config.get("gamma", 1)
         self.writer.add_scalar('episode/length', len(rewards), episode)
         self.writer.add_scalar('episode/total_reward', sum(rewards), episode)
         self.writer.add_scalar('episode/return', sum(r*gamma**t for t, r in enumerate(rewards)), episode)
@@ -349,6 +346,7 @@ class Evaluation(object):
                             best_increase=1.1,
                             episodes_window=50):
         if capped_cubic_video_schedule(episode):
+            #print("capped_cubic_video_schedule(episode)", capped_cubic_video_schedule(episode))
             # Save the model
             if self.training:
                 self.save_agent_model(episode)
@@ -364,17 +362,14 @@ class Evaluation(object):
 
     @property
     def default_directory(self):
-        agent_name = self.agent.__class__.__name__ if self.agent is not None else "RuleBased"
-        return Path(self.OUTPUT_FOLDER) / self.env.unwrapped.__class__.__name__ / agent_name
+        return Path(self.OUTPUT_FOLDER) / self.env.unwrapped.__class__.__name__ / self.agent.__class__.__name__
 
     @property
     def default_run_directory(self):
         return self.RUN_FOLDER.format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'), os.getpid())
 
     def write_metadata(self):
-        metadata = {"env": serialize(self.env)}
-        if self.agent is not None:
-            metadata["agent"] = serialize(self.agent)
+        metadata = dict(env=serialize(self.env), agent=serialize(self.agent))
         file_infix = '{}.{}'.format(id(self.wrapped_env), os.getpid())
         file = self.run_directory / self.METADATA_FILE.format(file_infix)
         with file.open('w') as f:
@@ -388,9 +383,8 @@ class Evaluation(object):
     def reset(self, seed=0):
         seed = self.sim_seed + seed if self.sim_seed is not None else None
         self.observation, info = self.wrapped_env.reset()
-        if self.agent is not None:
-            self.agent.seed(seed)  # Seed the agent with the main environment seed
-            self.agent.reset()
+        self.agent.seed(seed)  # Seed the agent with the main environment seed
+        self.agent.reset()
 
     def close(self):
         """

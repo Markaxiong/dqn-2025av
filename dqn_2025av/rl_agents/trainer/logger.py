@@ -1,6 +1,7 @@
 import json
-import logging.config
+import logging
 from pathlib import Path
+import logging.config
 import gymnasium as gym
 
 from rl_agents.configuration import Configurable
@@ -35,7 +36,7 @@ logging_config = {
 }
 
 
-def configure(config={}, gym_level=gym.logger.INFO):
+def configure(config={}, gym_level=logging.INFO):
     """
         Configure logging.
 
@@ -52,10 +53,8 @@ def configure(config={}, gym_level=gym.logger.INFO):
         Configurable.rec_update(logging_config, config)
     logging.config.dictConfig(logging_config)
     #gym.logger.set_level(gym_level)
-    import logging
     logging.getLogger("gymnasium").setLevel(gym_level)
-
-
+    
 
 def add_file_handler(file_path):
     """
