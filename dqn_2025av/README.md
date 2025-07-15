@@ -1,18 +1,20 @@
-# 请确认当前的环境为base
-conda activate base
-# 如何创建一个新环境
-conda create -n dqn_2025av python=3.9
-# 如何激活创建的虚拟环境
-conda activate dqn_2025av
 # 安装环境需要的所有依赖前，需要进入你的工作目录
 如C:\Users\73191\Desktop\dqn_2025av-main\dqn_2025av
 
 通过 "cd+文件夹名" 打开一个文件夹
 
 通过 "cd .." 返回上一级文件夹
-# 进入工作目录后，可以安装环境所需的所有依赖
+# 请确认当前的环境为base
+conda activate base
+# 如何创建一个新环境
+conda create -n dqn_env python=3.9
+# 如何激活创建的虚拟环境
+conda activate dqn_env
+
+# 在工作目錄下安装环境所需的所有依赖
 rl-agents(算法实现的库)和highway_env(自动驾驶环境)的所有依赖已经置于
-dqn_2025av-main\dqn_2025av\requirements.txt下
+
+dqn_2025av-main\dqn_2025av\requirements.txt
 
 所以你只需运行指令
 
@@ -34,13 +36,15 @@ python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/ag
 
 "--no-display"参数传入(设置为True)意味着不会保存渲染视频。如果训练期间需要运行几万个episodes，出于内存考虑，此参数训练期间必须传入
 # 如何测试一个训练好的智能体 
-python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/agents/DQNAgent/dqn.json --test --recover --episodes=20
+python experiments.py evaluate configs/MergeEnv/env_agg.json --test --recover --episodes=20
 
 此时需要看到策略的效果，默认不传入"--no-display"，以保存测试时的渲染视频
 
 "--recover"参数意味着加载最新一次训练的模型
 
 如果你不想加载最新的模型，需要在"--recover"后传入具体的模型路径
+
+由於你已經加載了智能體模型，所以test時不需要額外加載智能體配置文件(這一點和訓練時有區別！!)
 
 如 --recover out/MergeEnv/DQNAgent/run_20250617-145431_621696/checkpoint-final.tar
 # 如何查看车辆运行的渲染视频
