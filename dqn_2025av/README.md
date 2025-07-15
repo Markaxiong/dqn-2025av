@@ -59,7 +59,7 @@ tensorboard --logdir= your_logdir_name 這裏換成你自己的訓練日志文�
 例如
 tensorboard --logdir=/out/MergeEnv/DQNAgent/run_20250617-145431_621696
 
-即可查看智能体训练获得的奖励情况
+即可查看智能体训练的表現情況，rewards曲綫平穩在某個值附近一般意味著算法收斂
 
 
 
