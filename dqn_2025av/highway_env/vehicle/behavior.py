@@ -230,6 +230,7 @@ class IDMVehicle(ControlledVehicle):
         Then cancel the lane change.
         """
         # If a lane change is already ongoing
+        #Rule 1: If ego is preparing for a lane changing and other vehicles is also preparing for that and its distance to ego is less than the desired gap
         if self.lane_index != self.target_lane_index:
             # If we are on correct route but bad lane: abort it if someone else is already changing into the same lane
             if self.lane_index[:2] == self.target_lane_index[:2]:
@@ -597,6 +598,7 @@ class DefensiveVehicle(LinearVehicle):
 class RuleBasedVehicle(IDMVehicle):
 
     _SPEED = 0.3
+    emergency_speed = 10
 
     def act(self, action: dict | str = None):
         """
@@ -613,15 +615,13 @@ class RuleBasedVehicle(IDMVehicle):
         self.follow_road()
         if self.enable_lane_change:
             self.change_lane_policy()
-        print("target_lane_index: ", self.target_lane_index)
         action["steering"] = self.steering_control(self.target_lane_index)
         action["steering"] = np.clip(action["steering"], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
 
-        # === Longitudinal: IDM on current lane ===
+        # === Longitudinal: By rules ===
         front_vehicle, rear_vehicle = self.road.neighbour_vehicles(self, self.lane_index)
 
         if front_vehicle is None:
-            print("[当前车道规则1] 无前车：加速")
             self.target_speed += self._SPEED 
 
         else:
@@ -629,15 +629,14 @@ class RuleBasedVehicle(IDMVehicle):
             d_desired = self.desired_gap(self, front_vehicle)
 
             if d <= d_desired and self.speed > front_vehicle.speed:
-                print("[当前车道规则1] 距离过近且车速更快：减速")
                 self.target_speed -= self._SPEED
                 if front_vehicle.speed !=0: #not obstacle
                     self.target_speed = min(self.target_speed, front_vehicle.speed)
+                #如果前面是靜止的障礙物，需要緊急制動
                 else:
-                    self.target_speed = 10
+                    self.target_speed = self.emergency_speed
 
             elif d > d_desired and self.speed <= front_vehicle.speed:
-                print("[当前车道规则2] 距离足够远且前车更快：加速")
                 self.target_speed += self._SPEED
 
          
@@ -649,7 +648,6 @@ class RuleBasedVehicle(IDMVehicle):
             front_vehicle, rear_vehicle = self.road.neighbour_vehicles(self, self.target_lane_index)
 
             if front_vehicle is None:
-                print("[换道规则1] 目标车道无前车：加速")
                 self.target_speed += self._SPEED
 
             else:
@@ -657,23 +655,18 @@ class RuleBasedVehicle(IDMVehicle):
                 d_desired = self.desired_gap(self, front_vehicle)
 
                 if d <= d_desired and self.speed > front_vehicle.speed:
-                    print("[换道规则2] 目标车道前车距离过近且速度更快：减速")
                     self.target_speed -= self._SPEED
                     if front_vehicle.speed !=0: #not obstacle
                         self.target_speed = min(self.target_speed, front_vehicle.speed)
 
                 elif d > d_desired and self.speed <= front_vehicle.speed:
-                    print("[换道规则3] 目标车道前车距离足够远且前车更快：加速")
                     self.target_speed += self._SPEED
 
             self.target_speed = np.clip(self.target_speed, 10, 30)        
             target_acceleration = self.speed_control(self.target_speed)
             action["acceleration"] = min(action["acceleration"], target_acceleration)
-        print("speed", self.speed)
-        print("target_speed", self.target_speed)
         # === Clip final acceleration and execute ===
         #action["acceleration"] = np.clip(action["acceleration"], -self.ACC_MAX, 3)
-        print("最终执行动作: ", action)
         Vehicle.act(self, action)
 
 
@@ -715,14 +708,12 @@ class RuleBasedVehicle(IDMVehicle):
                             d_star = self.desired_gap(self, v)
                             if 0 < d < d_star:
                                 self.target_lane_index = self.lane_index
-                                print("refused by policy rule 1")
                                 break
                 return
 
             # else, at a given frequency,
             # Rule 2 : If the timer is greater than the minimum duration Then lane changing is allowed
             if not utils.do_every(self.LANE_CHANGE_DELAY, self.timer):
-                print("refused by policy rule 2")
                 return
             self.timer = 0
 
@@ -734,7 +725,6 @@ class RuleBasedVehicle(IDMVehicle):
                 if not self.road.network.get_lane(lane_index).is_reachable_from(
                     self.position
                 ):  
-                    print("refused by policy rule 3")
                     continue
                 # Only change lane when the vehicle is moving
                 if np.abs(self.speed) < 1:
@@ -765,7 +755,6 @@ class RuleBasedVehicle(IDMVehicle):
         )
         # Rule 1 :If the new following vehicle will decelerate too much, Then do not change lane
         if new_following_pred_a < -self.LANE_CHANGE_MAX_BRAKING_IMPOSED:
-            print("refused by mobil rule 1")
             return False
 
         # Do I have a planned route for a specific lane which is safe for me to access?
@@ -794,20 +783,18 @@ class RuleBasedVehicle(IDMVehicle):
 
         pred_target_speed = np.clip(pred_target_speed, 10, 30)
         self_pred_a = self.speed_control(pred_target_speed)
+
         # Rule 2: If there is a well-planned route, and the candidate lane is in the right direction
         # and the ego will not brake too much 
         # Then change lane
-
         if self.route and self.route[0][2] is not None:
             # Wrong direction
             if np.sign(lane_index[2] - self.target_lane_index[2]) != np.sign(
                 self.route[0][2] - self.target_lane_index[2]
             ):
-                print("refused by mobil rule 2.1")
                 return False
             # Unsafe braking required
             elif self_pred_a < -self.LANE_CHANGE_MAX_BRAKING_IMPOSED:
-                print("refused by mobil rule 2.2")
                 return False
         
         # Rule 3: Else IF the acceleration will be gained a lot by changing lane for ego and following vehicles 
@@ -852,7 +839,6 @@ class RuleBasedVehicle(IDMVehicle):
                 )
             )
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
-                print("refused by mobil rule 3")
                 return False
 
         # All clear, let's go!
