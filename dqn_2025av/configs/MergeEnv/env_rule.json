@@ -1,0 +1,6 @@
+{
+    "id": "merge-v0",
+    "import_module": "highway_env",
+    "rule_based" : true,
+    "rule_based_type": "highway_env.vehicle.behavior.RuleBasedVehicle"
+}
