@@ -1,11 +1,11 @@
 # 请确认当前的环境为base
-"conda activate base"
+conda activate base
 # 如何创建一个新环境
-"conda create -n dqn_2025av python=3.9"
+conda create -n dqn_2025av python=3.9
 # 如何激活创建的虚拟环境
-"conda activate dqn_2025av"
+conda activate dqn_2025av
 # 安装环境需要的所有依赖前，需要进入你的工作目录
-如C:\Users\73191\Desktop\dqn_2025av-main\dqn_2025av"、
+如C:\Users\73191\Desktop\dqn_2025av-main\dqn_2025av
 
 通过 "cd+文件夹名" 打开一个文件夹
 
