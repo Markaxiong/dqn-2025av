@@ -28,7 +28,7 @@ python experiments.py evaluate configs/MergeEnv/env_rule.json --test --episodes=
 # 如何训练一个智能体
 python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/agents/DQNAgent/dqn.json --train --no-display --episodes=20
 
-"--no-display"参数传入(设置为True)意味着不会保存渲染视频，如果训练期间需要运行几万个episodes，出于内存考虑，此参数必须传入
+"--no-display"参数传入(设置为True)意味着不会保存渲染视频。如果训练期间需要运行几万个episodes，出于内存考虑，此参数训练期间必须传入
 # 如何测试一个训练好的智能体 
 python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/agents/DQNAgent/dqn.json --test --recover --episodes=20
 
