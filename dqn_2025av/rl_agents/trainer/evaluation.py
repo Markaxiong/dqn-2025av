@@ -142,6 +142,7 @@ class Evaluation(object):
         except AttributeError:
             pass
         self.run_episodes()
+        print("videos saved in {}".format(self.run_directory))
         self.close()
 
     def run_episodes(self):
