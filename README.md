@@ -11,7 +11,7 @@ conda activate dqn_2025av
 
 通过 "cd .." 返回上一级文件夹
 # 进入工作目录后，可以安装环境所需的所有依赖
-rl-agents(算法实现的库)和highway(自动驾驶环境)的所有依赖已经置于
+rl-agents(算法实现的库)和highway_env(自动驾驶环境)的所有依赖已经置于
 dqn_2025av-main\dqn_2025av\requirements.txt下
 
 所以你只需运行指令
