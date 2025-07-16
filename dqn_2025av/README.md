@@ -26,7 +26,7 @@ pip install -r requirements.txt
 
 python experiments.py evaluate configs/MergeEnv/env_rule.json --test --episodes=20
 
-即可运行
+即可运行，由於基於規則的方法不涉及任何智能體，所以不需要加載智能體配置文件
 # 如何训练一个智能体
 一般结构：python experiments.py evaluate env_config(环境配置) agent_config(智能体配置) --train --no-display --episodes=20
 
@@ -36,7 +36,7 @@ python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/ag
 
 "--no-display"参数传入(设置为True)意味着不会保存渲染视频。如果训练期间需要运行几万个episodes，出于内存考虑，此参数训练期间必须传入
 # 如何测试一个训练好的智能体 
-python experiments.py evaluate configs/MergeEnv/env_agg.json --test --recover --episodes=20
+python experiments.py evaluate configs/MergeEnv/env_agg.json configs/MergeEnv/agents/DQNAgent/dqn.json --test --recover --episodes=20
 
 此时需要看到策略的效果，默认不传入"--no-display"，以保存测试时的渲染视频
 
@@ -46,7 +46,8 @@ python experiments.py evaluate configs/MergeEnv/env_agg.json --test --recover --
 
 如 --recover out/MergeEnv/DQNAgent/run_20250617-145431_621696/checkpoint-final.tar
 
-由於你已經加載了智能體模型，所以test時不需要額外加載智能體配置文件(這一點和訓練時有區別！!)
+雖然你已經加載了智能體模型，但test時仍需要額外加載智能體配置文件(如"configs/MergeEnv/agents/DQNAgent/dqn.json"，以便將測試結果保存在相應的路徑)
+
 # 如何查看车辆运行的渲染视频
 所有运行结果,包括训练的模型和已经渲染的视频会保存在工作目录的out文件夹下
 # 如何查看模型的训练表现(使用tensorboard)
