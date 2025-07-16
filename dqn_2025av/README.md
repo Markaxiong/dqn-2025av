@@ -5,7 +5,7 @@
 
 通过 "cd .." 返回上一级文件夹
 # 请确认当前的环境为base
-conda activate base
+conda deactivate / conda activate base
 # 如何创建一个新环境
 conda create -n dqn_env python=3.9
 # 如何激活创建的虚拟环境
